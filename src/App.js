@@ -1,7 +1,6 @@
-import React, { Component } from "react";
 import Konva from "konva";
+import React, { Component } from "react";
 import "./App.css";
-import CopyToClipboard from "react-copy-to-clipboard";
 
 const SELECTED_CLOCK = "rgba(180, 0, 30, 0.9)";
 const HOVER_CLOCK = "rgba(180, 0, 30, 0.5)";
@@ -10,14 +9,16 @@ const ARENA_RADIUS = 160;
 const DRAGON_RADIUS = 25;
 const MARK_RADIUS = 10;
 const MARK_COLORS = [
-  "rgb(249, 29, 73)",
-  "rgb(242, 239, 72)",
-  "rgb(112, 231, 255)",
+  "rgb(0, 170, 0)",
+  "rgb(0, 170, 170)"
 ];
 const STAGE_HEIGHT = 600;
 const STAGE_WIDTH = 600;
 const DIVE_WIDTH = 110;
-const DIVE_COLOR = "rgba(225, 178, 255, 0.6)";
+const DIVE_COLOR = "rgba(255, 170, 0, 0.5)";
+
+const DRAGON_COUNT = 3;
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -61,21 +62,72 @@ class App extends Component {
     this.init();
     window.onhashchange = this.locationHashChanged;
   }
+
+  makeWaymark(angle, text, colour) {
+    let angleRadians = angle * Math.PI / 180;
+    let arenaCentreX = this.stage.getWidth() / 2;
+    let arenaCentreY = this.stage.getHeight() / 2;
+
+    let localX = 0;
+    let localY = -(ARENA_RADIUS * 0.9);
+    console.log(arenaCentreX)
+    console.log((localX * Math.cos(angleRadians) - localY * Math.sin(angleRadians)))
+    return new Konva.Text({
+      x: arenaCentreX - ARENA_RADIUS + (localX * Math.cos(angleRadians) - localY * Math.sin(angleRadians)),
+      y: arenaCentreY - ARENA_RADIUS+ (localX * Math.sin(angleRadians) + localY * Math.cos(angleRadians)),
+      text,
+      height: ARENA_RADIUS * 2,
+      width: ARENA_RADIUS * 2,
+      align: "center",
+      verticalAlign: "middle",
+      fontSize: 12 * 3,
+      fill: colour,
+      stroke: "black",
+      strokeWidth: 0.5
+    });
+  }
   initArena() {
     var layer = new Konva.Layer();
+    let arenaCentreX = this.stage.getWidth() / 2;
+    let arenaCentreY = this.stage.getHeight() / 2;
     var arena = new Konva.Circle({
-      x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2,
+      x: arenaCentreX,
+      y: arenaCentreY,
       radius: ARENA_RADIUS,
       fill: "rgba(90, 0, 90, 0.3)",
       stroke: "black",
       strokeWidth: 2,
     });
     layer.add(arena);
+
+    let waymarks = [
+      this.makeWaymark(
+        45,
+        "1",
+        "rgb(255, 85, 85)"
+      ),
+      this.makeWaymark(
+        135,
+        "2",
+        "rgb(255, 255, 85)"
+      ),
+      this.makeWaymark(
+        225,
+        "3",
+        "rgb(85, 255, 255)"
+      ),
+      this.makeWaymark(
+        315,
+        "4",
+        "rgb(170, 0, 170)"
+      )
+    ];
+    layer.add(...waymarks);
+
     for (var i = 0; i < 8; ++i) {
       var clock = new Konva.Circle({
-        x: this.stage.getWidth() / 2,
-        y: this.stage.getHeight() / 2,
+        x: arenaCentreX,
+        y: arenaCentreY,
         offsetY: this.stage.getHeight() / 4,
         offsetX: this.stage.getHeight() / 4,
         rotation: 45 * i + 45,
@@ -109,10 +161,16 @@ class App extends Component {
   initMarks() {
     var layer = new Konva.Layer();
     this.markLayer = layer;
-    for (var i = 0; i < 3; ++i) {
+
+    let markCount = MARK_COLORS.length;
+    for (var i = 0; i < markCount; ++i) {
+      let markHeights = markCount * MARK_RADIUS * 2;
+      let gapHeights = (markCount - 1) * MARK_RADIUS;
+      let totalHeight = markHeights + gapHeights;
+
       var mark = new Konva.Circle({
-        x: this.stage.getWidth() / 2 - 30 + i * 30,
-        y: this.stage.getHeight() / 2,
+        x: this.stage.getWidth() / 2,
+        y: (this.stage.getHeight() / 2) - (totalHeight / 2) + (MARK_RADIUS) + (i * (MARK_RADIUS * 3)),
         radius: MARK_RADIUS,
         fill: MARK_COLORS[i],
         draggable: true,
@@ -170,7 +228,7 @@ class App extends Component {
   initDive() {
     var layer = new Konva.Layer();
     this.stage.add(layer);
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < DRAGON_COUNT; i++) {
       var rect = new Konva.Rect({
         x: 0,
         y: 0,
@@ -303,7 +361,7 @@ class App extends Component {
     this.initArena();
     this.initDive();
     this.initMarks();
-    this.loadHashSetting();
+    // this.loadHashSetting();
   }
   updateDive() {
     var count = 0;
@@ -314,18 +372,16 @@ class App extends Component {
         count++;
       }
     }
-    if (count !== 5) {
+    if (count !== DRAGON_COUNT) {
       this.diveLayer.clear();
       return;
     }
     const pairs = [
       [0, 0],
       [0, 1] /* 1st mark */,
-      [1, 2] /* 2nd mark */,
-      [2, 3],
-      [2, 4] /* 3rd mark */,
+      [1, 2] /* 2nd mark */
     ];
-    for (i = 0; i < 5; ++i) {
+    for (i = 0; i < DRAGON_COUNT; ++i) {
       const p = pairs[i];
       var markPos = this.marks[p[0]].position();
       // x: this.clockpos[i].x + STAGE_WIDTH / 2,
@@ -377,7 +433,7 @@ class App extends Component {
         return a[1] - b[1];
       });
     this.reset();
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < DRAGON_COUNT; i++) {
       var d = result[i][0];
       this.clocks[d]._sel = true;
       this.clocks[d].fill(SELECTED_CLOCK);
@@ -434,26 +490,12 @@ class App extends Component {
     return (
       <div className="App">
         <div id="arena"></div>
-        <div id="params">
-          <div>
-            Dive Width{" "}
-            <input
-              value={this.state.diveWidth}
-              onChange={(e) => this.setState({ diveWidth: e.target.value })}
-            />
-          </div>
-          <button style={{ marginTop: "10px" }} onClick={this.update}>
-            Update
-          </button>
-        </div>
         <div className="clearfix"></div>
-        <button onClick={this.reset}>reset</button>
-        <button onClick={this.random}>random dragon</button>
-        <CopyToClipboard text={this.state.hash}>
-          <button onClick={this.export}>export</button>
-        </CopyToClipboard>
+        <button onClick={this.reset}>Reset</button>
+        <button onClick={this.random}>Randomise Dragons</button>
+
         <br />
-        <input className="hash" value={this.state.hash} readOnly={true} />
+        <p>For our T9S dives. Forked from <a href="https://github.com/freehaha/nael-dive">@freehaha's nael-dive</a> for UCoB.</p>
       </div>
     );
   }
