@@ -10,7 +10,8 @@ const DRAGON_RADIUS = 25;
 const MARK_RADIUS = 10;
 const MARK_COLORS = [
   "rgb(0, 170, 0)",
-  "rgb(0, 170, 170)"
+  "rgb(0, 170, 170)",
+  "rgb(255, 85, 85)"
 ];
 const STAGE_HEIGHT = 600;
 const STAGE_WIDTH = 600;
@@ -70,8 +71,8 @@ class App extends Component {
 
     let localX = 0;
     let localY = -(ARENA_RADIUS * 0.9);
-    console.log(arenaCentreX)
-    console.log((localX * Math.cos(angleRadians) - localY * Math.sin(angleRadians)))
+    // console.log(arenaCentreX)
+    // console.log((localX * Math.cos(angleRadians) - localY * Math.sin(angleRadians)))
     return new Konva.Text({
       x: arenaCentreX - ARENA_RADIUS + (localX * Math.cos(angleRadians) - localY * Math.sin(angleRadians)),
       y: arenaCentreY - ARENA_RADIUS+ (localX * Math.sin(angleRadians) + localY * Math.cos(angleRadians)),
@@ -491,11 +492,18 @@ class App extends Component {
       <div className="App">
         <div id="arena"></div>
         <div className="clearfix"></div>
-        <button onClick={this.reset}>Reset</button>
+        <button onClick={this.reset}>Clear Dragons</button>
         <button onClick={this.random}>Randomise Dragons</button>
 
         <br />
-        <p>For our T9S dives. Forked from <a href="https://github.com/freehaha/nael-dive">@freehaha's nael-dive</a> for UCoB.</p>
+        <p>For our T9S dives.</p>
+        <ul>
+          <li>Green: First dive marker</li>
+          <li>Blue: Second dive marker</li>
+          <li>Red: Meteor marker</li>
+        </ul>
+        <br />
+        <p>Forked from <a href="https://github.com/freehaha/nael-dive">@freehaha's nael-dive</a> for UCoB.</p>
       </div>
     );
   }
