@@ -89,6 +89,13 @@ class App extends Component {
   }
   initArena() {
     var layer = new Konva.Layer();
+    let background = new Konva.Rect({
+      width: STAGE_WIDTH,
+      height: STAGE_HEIGHT,
+      fill: "white"
+    });
+    layer.add(background);
+
     let arenaCentreX = this.stage.getWidth() / 2;
     let arenaCentreY = this.stage.getHeight() / 2;
     var arena = new Konva.Circle({
@@ -229,6 +236,7 @@ class App extends Component {
   initDive() {
     var layer = new Konva.Layer();
     this.stage.add(layer);
+
     for (var i = 0; i < DRAGON_COUNT; i++) {
       var rect = new Konva.Rect({
         x: 0,
@@ -239,11 +247,13 @@ class App extends Component {
         strokeWidth: 1,
         stroke: "black",
         fill: DIVE_COLOR,
-        rotation: 0,
+        rotation: 0
       });
       this.dives.push(rect);
       layer.add(rect);
     }
+
+    layer.visible(false);
     this.diveLayer = layer;
   }
   testSetting() {
@@ -373,10 +383,13 @@ class App extends Component {
         count++;
       }
     }
+
     if (count !== DRAGON_COUNT) {
-      this.diveLayer.clear();
+      this.diveLayer.visible(false);
       return;
     }
+    this.diveLayer.visible(true);
+
     const pairs = [
       [0, 0],
       [0, 1] /* 1st mark */,
@@ -416,6 +429,19 @@ class App extends Component {
     this.clockLayer.draw();
     this.updateDive();
   }
+
+  copyImage = () => {
+    console.log(this.stage)
+    this.stage.toBlob({
+      callback: (blob) => {
+        console.log(blob)
+        navigator.clipboard.write([
+          new window.ClipboardItem({ "image/png": blob })
+        ])
+      }
+    })
+  }
+
   reset() {
     for (var c of this.clocks) {
       c._sel = false;
@@ -492,6 +518,7 @@ class App extends Component {
       <div className="App">
         <div id="arena"></div>
         <div className="clearfix"></div>
+        <button onClick={this.copyImage}>Copy Image to Clipboard</button>
         <button onClick={this.reset}>Clear Dragons</button>
         <button onClick={this.random}>Randomise Dragons</button>
 
